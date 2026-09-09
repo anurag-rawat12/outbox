@@ -1,0 +1,53 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum EmailStatus {
+  scheduled
+  processing
+  sent
+  failed
+}
+
+// ─── Models ───────────────────────────────────────────────────────────────────
+
+model Sender {
+  id          String   @id @default(uuid())
+  email       String   @unique
+  slackToken  String?  @map("slack_token")
+  slackTeamId String?  @map("slack_team_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  emails Email[]
+
+  @@map("senders")
+}
+
+model Email {
+  id          String      @id @default(uuid())
+  senderId    String      @map("sender_id")
+  sender      Sender      @relation(fields: [senderId], references: [id])
+  recipient   String
+  subject     String
+  body        String
+  scheduledAt DateTime    @map("scheduled_at")
+  status      EmailStatus @default(scheduled)
+  sentAt      DateTime?   @map("sent_at")
+  previewUrl  String?     @map("preview_url")
+  createdAt   DateTime    @default(now()) @map("created_at")
+
+  // Composite index for fast filtered queries
+  @@index([status, scheduledAt])
+  @@index([senderId, status])
+  @@map("emails")
+}
