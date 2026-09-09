@@ -85,6 +85,12 @@ async function bootstrap() {
       console.log(`👷 Embedded Email Queue Worker active in API server process`);
     }
 
+    if (env.RESEND_API_KEY) {
+      console.log(`📬 Resend HTTP Email API (HTTPS port 443): ACTIVE`);
+    } else {
+      console.log(`📬 Resend API key not configured (SMTP fallback mode)`);
+    }
+
     // 4. Start listening
     app.listen(env.PORT, () => {
       console.log(`\n==================================================`);

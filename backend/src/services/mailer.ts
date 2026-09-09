@@ -71,13 +71,22 @@ export interface SendEmailOptions {
 export async function sendEmail({ from, to, subject, body }: SendEmailOptions) {
   const fromAddress = from || env.SMTP_FROM || env.SMTP_USER || env.ETHEREAL_USER || 'no-reply@reachinbox.ai';
 
+  const resendApiKey = env.RESEND_API_KEY
+    ? env.RESEND_API_KEY.trim().replace(/^["']|["']$/g, '')
+    : undefined;
+
   // 1. Resend HTTP API (HTTPS port 443 — NEVER blocked by Render or any cloud firewall)
-  if (env.RESEND_API_KEY) {
+  if (resendApiKey) {
+    console.log(`🚀 [Mailer] Sending via Resend API (HTTPS port 443) to ${to}...`);
     try {
+      const fromField = env.SMTP_FROM && env.SMTP_FROM.includes('@')
+        ? env.SMTP_FROM
+        : 'ReachInbox <onboarding@resend.dev>';
+
       const res = await axios.post(
         'https://api.resend.com/emails',
         {
-          from: env.SMTP_FROM || 'onboarding@resend.dev',
+          from: fromField,
           to: [to],
           subject,
           text: body,
@@ -85,18 +94,20 @@ export async function sendEmail({ from, to, subject, body }: SendEmailOptions) {
         },
         {
           headers: {
-            Authorization: `Bearer ${env.RESEND_API_KEY}`,
+            Authorization: `Bearer ${resendApiKey}`,
             'Content-Type': 'application/json',
           },
         }
       );
-      console.log(`✉️ [Resend API] Email sent to ${to}: Id=${res.data?.id}`);
+      console.log(`✅ [Resend API] Email delivered to ${to}! MessageId=${res.data?.id}`);
       return {
         messageId: res.data?.id || `resend_${Date.now()}`,
         isRealSmtp: true,
       };
     } catch (apiError: any) {
-      console.error('⚠️ Resend HTTP API error:', apiError?.response?.data || apiError.message);
+      const errDetails = apiError?.response?.data || apiError.message;
+      console.error('❌ [Resend API Error]:', JSON.stringify(errDetails));
+      throw new Error(`Resend delivery failed: ${JSON.stringify(errDetails)}`);
     }
   }
 
