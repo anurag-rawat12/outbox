@@ -240,5 +240,6 @@ Inspect active, delayed, completed, and failed jobs in real-time.
 1. **Dynamic Ethereal Accounts:** If `ETHEREAL_USER` and `ETHEREAL_PASS` are not specified in `.env`, Nodemailer automatically calls `nodemailer.createTestAccount()` on boot, making setup friction-free without needing manual account registration.
 2. **Elasticsearch Fallback:** If Elasticsearch is temporarily unavailable or starting up, `GET /emails` falls back to indexed PostgreSQL queries (`WHERE status = ?`) so that user operations are never blocked.
 3. **Slack Token Persistence:** Slack tokens and incoming webhooks are associated with the `Sender` table keyed by sender ID/email, allowing per-tenant notifications upon rate limit exhaustion.
-#   o u t b o x  
+#   o u t b o x 
+ 
  
