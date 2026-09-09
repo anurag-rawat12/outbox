@@ -28,6 +28,7 @@ const envSchema = z.object({
   SMTP_PASS: z.string().optional(),
   SMTP_FROM: z.string().optional(),
   START_WORKER: z.coerce.boolean().optional().default(false),
+  RESEND_API_KEY: z.string().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

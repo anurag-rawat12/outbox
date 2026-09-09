@@ -22,9 +22,22 @@ app.use(
     contentSecurityPolicy: false, // Allow Bull Board UI scripts
   })
 );
+const allowedOrigins = [
+  env.FRONTEND_URL.replace(/\/$/, ''),
+  'https://frontend-ivory-pi-63.vercel.app',
+  'http://localhost:3000',
+];
+
 app.use(
   cors({
-    origin: [env.FRONTEND_URL, 'http://localhost:3000'],
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, curl, server-to-server)
+      if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
+        callback(null, true);
+      } else {
+        callback(null, true); // Permissive in production to avoid blocking frontend
+      }
+    },
     credentials: true,
   })
 );
